@@ -1,3 +1,3 @@
 elasticsearch==7.0.0
 mongo-connector
-git+https://github.com/tmpaul06/elastic7-doc-manager.git@b603aeda5
+git+https://github.com/tmpaul06/elastic7-doc-manager.git@72bc17f066428361dc2f3c196c75e1f07c2219cb
