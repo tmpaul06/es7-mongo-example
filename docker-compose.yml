@@ -1,0 +1,76 @@
+version: "2"
+
+services:
+  mongo-primary:
+    image: mongo:4.0
+    command: --replSet myDevReplSet
+    logging:
+      driver: none
+  mongo-secondary:
+    image: mongo:4.0
+    command: --replSet myDevReplSet
+    logging:
+      driver: none
+  mongo-replica-activator:
+    image: mongo:4.0
+    links:
+      - mongo-primary
+      - mongo-secondary
+    volumes:
+      - ./replica:/tmp/replica
+    command: 
+      - /tmp/replica/activate-replica.sh
+    depends_on:
+      - mongo-primary
+      - mongo-secondary
+    logging:
+      driver: none
+  mongo-connector:
+    build:
+      context: ./connector
+      dockerfile: Dockerfile
+    links:
+      - es
+      - mongo-primary
+      - mongo-secondary
+    volumes:
+      - ../elastic7-doc-manager:/tmp/elastic7-doc-manager
+      - ./connector:/tmp/connector
+    depends_on:
+      - es
+      - mongo-primary
+      - mongo-secondary
+      - mongo-replica-activator
+    environment:
+      - PYTHONUNBUFFERED=1
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
+    ports:
+       - "9208:9200"
+    ulimits:
+     memlock:
+       soft: -1
+       hard: -1
+     nofile:
+       soft: 65536
+       hard: 65536
+    mem_limit: 1g
+    cap_add:
+     - IPC_LOCK
+    logging:
+      driver: none
+    environment:
+     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+     - bootstrap.memory_lock=true
+     - ES_PUBLISH_HOST=_site_
+     - discovery.type=single-node
+     - LDAP_USERNAME=ldapservice
+     - LDAP_PASSWORD=NOT_SET
+     - MINIMUM_MASTER_NODES=1
+     - STACK_ID=NOT_SET
+     - xpack.security.enabled=false
+     - xpack.monitoring.enabled=false
+     - xpack.ml.enabled=false
+     - xpack.graph.enabled=false
+     - xpack.watcher.enabled=false
+     - cluster.routing.allocation.disk.threshold_enabled=false
