@@ -9,8 +9,10 @@ to support 7.x
 1. Make sure docker and docker-compose are installed on your system.
 2. If you are running linux machine, you may need `sudo` before each command below.
 
-3. Run `docker-compose up`, this will spawn up a MongDB primary, a MongoDB secondary, and Mongo Connector in a third docker container.
-The python connector will wait for 20 seconds so that Mongo can elect a PRIMARY.
+3. Run `docker-compose up`, this will spawn up a MongDB standalone and Mongo Connector in a third docker container.
+The python connector will wait for 20 seconds so that Mongo standalone can initiate a replica set.
+
+	> Do not worry if you see the container replica-activator exit, this to work-around some issues with running mongo in docker. https://github.com/yougov/mongo-connector/issues/391
 
 4. I've disabled the logs for mongo containers to prevent chattiness. You can remove the logging: driver: None from docker-compose file
 to see Mongo logs
@@ -20,13 +22,12 @@ to see Mongo logs
 
 1. Run `docker ps` to see a list of running containers
 ```
-8564fbfef3dd        es7-mongo-example_mongo-connector                     "bash /tmp/connector…"   1 second ago        Up Less than a second                                      es7-mongo-example_mongo-connector_1
-e820a58a273a        mongo:4.0                                             "docker-entrypoint.s…"   3 seconds ago       Up 2 seconds            27017/tcp                          es7-mongo-example_mongo-secondary_1
-d21694fae2c0        docker.elastic.co/elasticsearch/elasticsearch:7.3.1   "/usr/local/bin/dock…"   3 seconds ago       Up 2 seconds            9300/tcp, 0.0.0.0:9208->9200/tcp   es7-mongo-example_es_1
-d0eddb71300a        mongo:4.0                                             "docker-entrypoint.s…"   3 seconds ago       Up 2 seconds            27017/tcp                          es7-mongo-example_mongo-primary_1
+c4df563e90b9        es7-mongo-example_mongo-connector                     "bash /tmp/connector…"   18 seconds ago      Up 17 seconds                                          es7-mongo-example_mongo-connector_1
+0a7aa6671a7d        mongo:4.0                                             "docker-entrypoint.s…"   21 seconds ago      Up 19 seconds       27017/tcp                          es7-mongo-example_mongo-standalone_1
+ce197084e88c        docker.elastic.co/elasticsearch/elasticsearch:7.3.1   "/usr/local/bin/dock…"   2 minutes ago       Up 19 seconds       9300/tcp, 0.0.0.0:9208->9200/tcp   es7-mongo-example_es_1
 ```
-2. Find out the container id of the Mongo primary container. In this case, it is `d0eddb71300a` [See the primary tag in name]
-3. Run `docker exec -it d0eddb71300a mongo` to open mongo shell in container.
+2. Find out the container id of the Mongo standalone container. In this case, it is `0a7aa6671a7d` [See the standalone tag in name]
+3. Run `docker exec -it 0a7aa6671a7d mongo` to open mongo shell in container.
 4. Create a sample db.
 ```mongodb
 use foobar

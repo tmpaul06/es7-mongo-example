@@ -1,12 +1,7 @@
 version: "2"
 
 services:
-  mongo-primary:
-    image: mongo:4.0
-    command: --replSet myDevReplSet
-    logging:
-      driver: none
-  mongo-secondary:
+  mongo-standalone:
     image: mongo:4.0
     command: --replSet myDevReplSet
     logging:
@@ -14,15 +9,13 @@ services:
   mongo-replica-activator:
     image: mongo:4.0
     links:
-      - mongo-primary
-      - mongo-secondary
+      - mongo-standalone
     volumes:
       - ./replica:/tmp/replica
     command: 
       - /tmp/replica/activate-replica.sh
     depends_on:
-      - mongo-primary
-      - mongo-secondary
+      - mongo-standalone
     logging:
       driver: none
   mongo-connector:
@@ -31,15 +24,13 @@ services:
       dockerfile: Dockerfile
     links:
       - es
-      - mongo-primary
-      - mongo-secondary
+      - mongo-standalone
     volumes:
       - ../elastic7-doc-manager:/tmp/elastic7-doc-manager
       - ./connector:/tmp/connector
     depends_on:
       - es
-      - mongo-primary
-      - mongo-secondary
+      - mongo-standalone
       - mongo-replica-activator
     environment:
       - PYTHONUNBUFFERED=1

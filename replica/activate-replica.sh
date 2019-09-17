@@ -1,11 +1,5 @@
 #Wait for primary
-until mongo --host mongo-primary --eval "print(\"waited for connection\")"
-do
-    sleep 1
-done
-
-#Wait for mongo secondary
-until mongo --host mongo-secondary --eval "print(\"waited for connection\")"
+until mongo --host mongo-standalone --eval "print(\"waited for connection\")"
 do
     sleep 1
 done
@@ -13,5 +7,5 @@ done
 #you can add more MongoDB waits here
 
 echo "Adding replica config"
-mongo --host mongo-primary --eval "rs.initiate({\"_id\": \"myDevReplSet\", \"members\": [{\"_id\": 1, \"host\": \"mongo-primary\"}, {\"_id\": 2, \"host\": \"mongo-secondary\", \"priority\": 0.5}]})"
+mongo --host mongo-standalone --eval "rs.initiate()"
 echo "Replica set initiated"
